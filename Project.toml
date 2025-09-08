@@ -1,0 +1,7 @@
+name = "FewBodyVMC"
+uuid = "2c1c67e9-2b96-4b82-8a1e-9b8b82b7ebb3"
+authors = ["Shuhei Ohno"]
+version = "0.0.1"
+
+[compat]
+julia = "1.11"
