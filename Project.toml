@@ -1,7 +1,11 @@
 name = "FewBodyVMC"
 uuid = "2c1c67e9-2b96-4b82-8a1e-9b8b82b7ebb3"
-authors = ["Shuhei Ohno"]
 version = "0.0.1"
+authors = ["Shuhei Ohno"]
+
+[deps]
+FewBodyHamiltonians = "3a126c26-e5d7-4a95-83c3-3b69f8a11ded"
 
 [compat]
+FewBodyHamiltonians = "0.0.1"
 julia = "1.11"
