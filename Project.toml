@@ -7,5 +7,4 @@ authors = ["Shuhei Ohno"]
 FewBodyHamiltonians = "3a126c26-e5d7-4a95-83c3-3b69f8a11ded"
 
 [compat]
-FewBodyHamiltonians = "0.0.1"
 julia = "1.11"
