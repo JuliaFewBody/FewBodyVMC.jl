@@ -13,8 +13,9 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     timeout-minutes: 60
     permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
@@ -22,23 +23,39 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version:
-          - '1.11'
-        os:
-          - ubuntu-latest
-        arch:
-          - x64
+        include:
+          - version: 'min'
+            os: ubuntu-latest
+            experimental: false
+            coverage: false
+          - version: '1'
+            os: ubuntu-latest
+            experimental: false
+            coverage: true
+          - version: 'pre'
+            os: ubuntu-latest
+            experimental: true
+            coverage: false
+          - version: '1'
+            os: macOS-latest
+            experimental: false
+            coverage: false
+          - version: '1'
+            os: windows-latest
+            experimental: false
+            coverage: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v2
+      - uses: julia-actions/cache@v3
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
+        if: matrix.coverage
       - uses: codecov/codecov-action@v5
+        if: matrix.coverage
         with:
           files: lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -51,17 +68,11 @@ jobs:
       contents: write
       statuses: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
-      - uses: julia-actions/cache@v2
-      - name: Configure doc environment
-        shell: julia --project=docs --color=yes {0}
-        run: |
-          using Pkg
-          Pkg.develop(PackageSpec(path=pwd()))
-          Pkg.instantiate()
+      - uses: julia-actions/cache@v3
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
         env:

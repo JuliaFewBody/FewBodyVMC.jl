@@ -1,6 +1,6 @@
 using FewBodyVMC
 using Test
 
-@testset "FewBodyVMC.jl" begin
-    # Write your tests here.
+@testset "FewBodyVMC.hello" begin
+    @test FewBodyVMC.hello() == "Hello, World!"
 end

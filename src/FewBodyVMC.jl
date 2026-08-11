@@ -1,5 +1,17 @@
 module FewBodyVMC
 
-# Write your package code here.
+"""
+Return a friendly greeting.
+
+# Examples
+
+```jldoctest
+julia> FewBodyVMC.hello()
+"Hello, World!"
+```
+"""
+function hello()
+    return "Hello, World!"
+end
 
 end
