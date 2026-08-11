@@ -9,7 +9,14 @@ CurrentModule = FewBodyVMC
 [![Build Status](https://github.com/JuliaFewBody/FewBodyVMC.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaFewBody/FewBodyVMC.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/JuliaFewBody/FewBodyVMC.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaFewBody/FewBodyVMC.jl)
 
-FewBodyVMC.jl solves quantum few-body bound-state problems using variational Monte Carlo. It combines Hamiltonians from FewBodyHamiltonians.jl with trial wave functions and provides a solve-based interface for energy estimation, sampling diagnostics, and convergence analysis.
+FewBodyVMC estimates nonrelativistic few-body ground-state energies with
+variational Monte Carlo. It uses the same mass-scaled Jacobi coordinates and
+`Operators(masses, charges)` construction as
+[FewBodyECG.jl](https://github.com/JuliaFewBody/FewBodyECG.jl).
+
+Start with the [HD⁺ example](example.md), which treats the proton, deuteron,
+and electron as a full three-body Coulomb system without a Born–Oppenheimer
+approximation.
 
 ## Installation
 
@@ -19,10 +26,14 @@ Run the following command in the Julia REPL or a notebook:
 import Pkg; Pkg.add(url="https://github.com/JuliaFewBody/FewBodyVMC.jl.git")
 ```
 
-After installation, run the following to load the package and verify it works:
+After installation, load the package and construct the HD⁺ Hamiltonian:
 
-```@repl
-import FewBodyVMC; FewBodyVMC.hello()
+```julia
+using FewBodyVMC
+
+ops = Operators([1836.15267343, 3670.48296788, 1.0], [1.0, 1.0, -1.0])
+ops += "Kinetic"
+ops += "Coulomb"
 ```
 
 ## API Reference

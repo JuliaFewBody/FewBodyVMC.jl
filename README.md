@@ -15,14 +15,23 @@ Run the following command in the Julia REPL or a notebook:
 import Pkg; Pkg.add(url="https://github.com/JuliaFewBody/FewBodyVMC.jl.git")
 ```
 
-After installation, load the package and verify it works:
+After installation, build a three-body Hamiltonian and trial wavefunction:
 
 ```julia
-julia> import FewBodyVMC; FewBodyVMC.hello()
-"Hello, World!"
+using FewBodyVMC
+
+ops = Operators([1836.15267343, 3670.48296788, 1.0], [1.0, 1.0, -1.0])
+ops += "Kinetic"
+ops += "Coulomb"
+ψ = DiatomicOneElectronWavefunction(ops)
 ```
 
 ## Documentation
 
 - Home: https://JuliaFewBody.github.io/FewBodyVMC.jl
+- HD⁺ Example: https://JuliaFewBody.github.io/FewBodyVMC.jl/dev/example
 - API Reference: https://JuliaFewBody.github.io/FewBodyVMC.jl/dev/api
+
+## Citation
+
+See [`CITATION.bib`](CITATION.bib) for the relevant reference(s).

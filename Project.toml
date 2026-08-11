@@ -3,5 +3,15 @@ uuid = "2c1c67e9-2b96-4b82-8a1e-9b8b82b7ebb3"
 authors = ["Shuhei Ohno"]
 version = "0.0.1"
 
+[deps]
+FewBodyHamiltonians = "3a126c26-e5d7-4a95-83c3-3b69f8a11ded"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
 [compat]
+FewBodyHamiltonians = "0.0.2"
+ForwardDiff = "1"
+LinearAlgebra = "1.10"
+Random = "1.10"
 julia = "1.10"
