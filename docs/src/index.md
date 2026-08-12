@@ -16,7 +16,8 @@ variational Monte Carlo. It uses the same mass-scaled Jacobi coordinates and
 
 Start with the [HD⁺ example](example.md), which treats the proton, deuteron,
 and electron as a full three-body Coulomb system without a Born–Oppenheimer
-approximation.
+approximation. The [H₂⁺ example](h2plus.md) reproduces the physical system and
+binding check from the corresponding FewBodyECG.jl example with VMC.
 
 ## Installation
 

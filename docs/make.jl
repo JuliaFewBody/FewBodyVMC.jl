@@ -12,7 +12,14 @@ makedocs(;
         edit_link = "main",
         assets = String[],
     ),
-    pages = ["Home" => "index.md", "Example" => "example.md", "API Reference" => "api.md"],
+    pages = [
+        "Home" => "index.md",
+        "Examples" => [
+            "HD⁺ ground state" => "example.md",
+            "H₂⁺ without Born–Oppenheimer" => "h2plus.md",
+        ],
+        "API Reference" => "api.md",
+    ],
 )
 
 deploydocs(; repo = "github.com/JuliaFewBody/FewBodyVMC.jl", devbranch = "main")

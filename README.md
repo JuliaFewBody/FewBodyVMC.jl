@@ -30,6 +30,7 @@ ops += "Coulomb"
 
 - Home: https://JuliaFewBody.github.io/FewBodyVMC.jl
 - HD⁺ Example: https://JuliaFewBody.github.io/FewBodyVMC.jl/dev/example
+- H₂⁺ Example: https://JuliaFewBody.github.io/FewBodyVMC.jl/dev/h2plus
 - API Reference: https://JuliaFewBody.github.io/FewBodyVMC.jl/dev/api
 
 ## Citation
