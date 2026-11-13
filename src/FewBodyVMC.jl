@@ -1,11 +1,26 @@
 module FewBodyVMC
 
-using FewBodyHamiltonians
+import FewBodyHamiltonians
+using FewBodyHamiltonians: Operator, KineticTerm, PotentialTerm, Hamiltonian,
+    UnitSystem, Kinetic, Coulomb, Gaussian, ManyBodyGaussian, Oscillator, Custom,
+    Tensor, SpinOrbit
 using ForwardDiff
 using LinearAlgebra
 using Random
 
 export Operator,
+    KineticTerm,
+    PotentialTerm,
+    Hamiltonian,
+    UnitSystem,
+    Kinetic,
+    Coulomb,
+    Gaussian,
+    ManyBodyGaussian,
+    Oscillator,
+    Custom,
+    Tensor,
+    SpinOrbit,
     Operators,
     KineticOperator,
     CoulombOperator,

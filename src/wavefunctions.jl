@@ -10,7 +10,8 @@ electron,
 
 The first three Coulomb weights in `ops` must be ordered as nucleus–nucleus,
 first-nucleus–electron, and second-nucleus–electron. This is the order produced
-by `ops += "Coulomb"` for particle ordering `[nucleus1, nucleus2, electron]`.
+by `Coulomb(charges)` in a shared `Hamiltonian`, or the legacy
+`ops += "Coulomb"`, for particle ordering `[nucleus1, nucleus2, electron]`.
 """
 struct DiatomicOneElectronWavefunction{T<:Real,V<:AbstractVector{T}}
     w_nn::V
