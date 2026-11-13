@@ -1,5 +1,3 @@
-const Operator = FewBodyHamiltonians.Operator
-
 raw"""Kinetic energy ``-\sum_{ab}\Lambda_{ab}\nabla_a\cdot\nabla_b`` in Jacobi coordinates."""
 struct KineticOperator{T<:Real,M<:AbstractMatrix{T}} <: FewBodyHamiltonians.KineticTerm
     K::Symmetric{T,M}
@@ -29,10 +27,14 @@ end
 
 """
     Operators([masses[, charges]])
+    Operators(H::Hamiltonian)
 
-Hamiltonian builder using the same particle ordering and shorthand as
-FewBodyECG.jl. `ops += "Kinetic"` adds the internal kinetic energy and
-`ops += "Coulomb"` adds every pair with coefficient `q[i] * q[j]`.
+Jacobi-frame operators used by the VMC solver. `Operators(H)` lowers a shared
+FewBodyHamiltonians Hamiltonian containing atomic-unit `Kinetic` and `Coulomb`
+terms. Other physical potentials and unit systems are not supported by VMC.
+
+The legacy builder remains supported: `ops += "Kinetic"` adds internal kinetic
+energy and `ops += "Coulomb"` adds every pair with coefficient `q[i] * q[j]`.
 """
 mutable struct Operators
     terms::Vector{Operator}
@@ -55,6 +57,30 @@ function Operators(masses::AbstractVector{<:Real}, charges::AbstractVector{<:Rea
     J, U = jacobi_transform(masses)
     return Operators(Operator[], Float64.(masses), Float64.(charges), J, U)
 end
+
+function Operators(H::Hamiltonian)
+    FewBodyHamiltonians.validate(H)
+    kinetic = FewBodyHamiltonians.kinetic(H)
+    kinetic.units == FewBodyHamiltonians.unit_system(:atomic) ||
+        throw(ArgumentError("FewBodyVMC supports shared Hamiltonians in atomic units only"))
+    all(term -> term isa Union{Kinetic, Coulomb}, H) ||
+        throw(ArgumentError("FewBodyVMC supports shared Kinetic and Coulomb terms only"))
+    ops = Operators(kinetic.masses)
+    for term in H
+        if term isa Kinetic
+            push!(ops.terms, KineticOperator(term.masses))
+        else
+            selector = zeros(length(kinetic.masses))
+            selector[term.i] = 1
+            selector[term.j] = -1
+            push!(ops.terms, CoulombOperator(term.coefficient, transpose(ops.U) * selector))
+        end
+    end
+    return ops
+end
+
+_vmc_operators(ops) = ops
+_vmc_operators(H::Hamiltonian) = Operators(H)
 
 function Base.:+(ops::Operators, term::Operator)
     push!(ops.terms, term)
@@ -93,6 +119,7 @@ Base.iterate(ops::Operators, state...) = iterate(ops.terms, state...)
 
 """Return Coulomb pair weights in insertion order."""
 coulomb_weights(ops) = [term.w for term in ops if _is_coulomb(term)]
+coulomb_weights(H::Hamiltonian) = coulomb_weights(Operators(H))
 
 """Transform an `N × 3` particle-position matrix to Jacobi coordinates."""
 function jacobi_coordinates(ops::Operators, positions::AbstractMatrix{<:Real})
@@ -101,6 +128,8 @@ function jacobi_coordinates(ops::Operators, positions::AbstractMatrix{<:Real})
         throw(DimensionMismatch("positions must have size ($(length(ops.masses)), 3)"))
     return ops.J * positions
 end
+jacobi_coordinates(H::Hamiltonian, positions::AbstractMatrix{<:Real}) =
+    jacobi_coordinates(Operators(H), positions)
 
 """Back-transform Jacobi coordinates to centre-of-mass-free particle positions."""
 function particle_coordinates(ops::Operators, coordinates::AbstractMatrix{<:Real})
@@ -110,6 +139,8 @@ function particle_coordinates(ops::Operators, coordinates::AbstractMatrix{<:Real
     )
     return ops.U * coordinates
 end
+particle_coordinates(H::Hamiltonian, coordinates::AbstractMatrix{<:Real}) =
+    particle_coordinates(Operators(H), coordinates)
 
 _is_kinetic(term) = term isa FewBodyHamiltonians.KineticTerm && hasproperty(term, :K)
 _is_coulomb(term) =

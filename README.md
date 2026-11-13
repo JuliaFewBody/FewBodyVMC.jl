@@ -20,11 +20,16 @@ After installation, build a three-body Hamiltonian and trial wavefunction:
 ```julia
 using FewBodyVMC
 
-ops = Operators([1836.15267343, 3670.48296788, 1.0], [1.0, 1.0, -1.0])
-ops += "Kinetic"
-ops += "Coulomb"
-ψ = DiatomicOneElectronWavefunction(ops)
+H = Kinetic([1836.15267343, 3670.48296788, 1.0]) + Coulomb([1.0, 1.0, -1.0])
+ψ = DiatomicOneElectronWavefunction(H)
 ```
+
+`Hamiltonian`, `Kinetic`, and `Coulomb` are the exact constructors from
+[FewBodyHamiltonians.jl](https://github.com/JuliaFewBody/FewBodyHamiltonians.jl),
+also used by FewBodyECG. VMC currently accepts atomic-unit kinetic and Coulomb
+terms; unsupported potentials and unit systems are rejected before sampling.
+The existing `Operators(masses, charges)` builder with `ops += "Kinetic"` and
+`ops += "Coulomb"` remains supported.
 
 ## Documentation
 

@@ -2,6 +2,8 @@ using FewBodyVMC
 using LinearAlgebra
 using Test
 
+include("shared_hamiltonians.jl")
+
 function hdplus_problem()
     proton_mass = 1836.15267343
     deuteron_mass = 3670.48296788
