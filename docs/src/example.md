@@ -28,11 +28,9 @@ using FewBodyVMC
 # electron masses and hartree, respectively.
 mₚ = 1836.15267343
 m_d = 3670.48296788
-ops = Operators([mₚ, m_d, 1.0], [+1.0, +1.0, -1.0])
-ops += "Kinetic"
-ops += "Coulomb"
+H = Kinetic([mₚ, m_d, 1.0]) + Coulomb([+1.0, +1.0, -1.0])
 
-ψ = DiatomicOneElectronWavefunction(ops; α = 1.2, κ = 6.0, R₀ = 2.1)
+ψ = DiatomicOneElectronWavefunction(H; α = 1.2, κ = 6.0, R₀ = 2.1)
 
 # Start near a 2-bohr internuclear separation. Conversion to the internal
 # coordinates is explicit, so particle and Jacobi conventions cannot be mixed.
@@ -41,7 +39,7 @@ particle_positions = [
      1.0  0.0  0.0
      0.0  0.2  0.0
 ]
-initial = vec(jacobi_coordinates(ops, particle_positions))
+initial = vec(jacobi_coordinates(H, particle_positions))
 
 method = VariationalMonteCarlo(
     n_steps = 2_500,
@@ -53,7 +51,7 @@ method = VariationalMonteCarlo(
     block_size = 50,
 )
 
-solution = solve(ops, ψ, method)
+solution = solve(H, ψ, method)
 solution
 ```
 

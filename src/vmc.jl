@@ -96,6 +96,7 @@ ForwardDiff Hessian; the bundled diatomic trial function uses an equivalent
 analytic expression.
 """
 function local_energy(operators, wavefunction, position::AbstractVector{<:Real})
+    operators = _vmc_operators(operators)
     value = wavefunction(position)
     iszero(value) && throw(DomainError(value, "wavefunction is zero at position"))
     K = _kinetic_matrix(operators)
@@ -133,6 +134,7 @@ function local_energy(
     wavefunction::DiatomicOneElectronWavefunction,
     position::AbstractVector{<:Real},
 )
+    operators = _vmc_operators(operators)
     R = _pair_distance(position, wavefunction.w_nn)
     r1 = _pair_distance(position, wavefunction.w_ne1)
     r2 = _pair_distance(position, wavefunction.w_ne2)
@@ -218,6 +220,7 @@ function solve(
     method::VariationalMonteCarlo;
     rng::Random.AbstractRNG = Random.MersenneTwister(123),
 )
+    operators = _vmc_operators(operators)
     K = _kinetic_matrix(operators)
     length(method.r₀) == 3size(K, 1) ||
         throw(DimensionMismatch("r₀ must have length $(3size(K, 1))"))
