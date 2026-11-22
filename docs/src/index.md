@@ -11,8 +11,9 @@ CurrentModule = FewBodyVMC
 
 FewBodyVMC estimates nonrelativistic few-body ground-state energies with
 variational Monte Carlo. It uses the same mass-scaled Jacobi coordinates and
-`Operators(masses, charges)` construction as
-[FewBodyECG.jl](https://github.com/JuliaFewBody/FewBodyECG.jl).
+particle-indexed Hamiltonians from
+[FewBodyHamiltonians.jl](https://github.com/JuliaFewBody/FewBodyHamiltonians.jl)
+as [FewBodyECG.jl](https://github.com/JuliaFewBody/FewBodyECG.jl).
 
 Start with the [HD⁺ example](example.md), which treats the proton, deuteron,
 and electron as a full three-body Coulomb system without a Born–Oppenheimer
@@ -32,10 +33,19 @@ After installation, load the package and construct the HD⁺ Hamiltonian:
 ```julia
 using FewBodyVMC
 
-ops = Operators([1836.15267343, 3670.48296788, 1.0], [1.0, 1.0, -1.0])
-ops += "Kinetic"
-ops += "Coulomb"
+H = Kinetic([1836.15267343, 3670.48296788, 1.0]) + Coulomb([1.0, 1.0, -1.0])
 ```
+
+`Kinetic` defines particle masses and removes center-of-mass motion;
+`Coulomb(charges)` adds all pairs in particle order. These constructors and
+`Hamiltonian` are re-exported from FewBodyHamiltonians without wrapping their
+types. Pass the same `H` to trial-wavefunction construction, coordinate helpers,
+`local_energy`, and `solve`.
+
+VMC currently supports atomic-unit `Kinetic` and `Coulomb` terms only. Other
+shared potentials (including `Custom`) and non-atomic units fail before
+wavefunction evaluation or sampling. The legacy `Operators(masses, charges)`
+builder and string additions remain available.
 
 ## API Reference
 
