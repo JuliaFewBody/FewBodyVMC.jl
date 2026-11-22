@@ -58,22 +58,27 @@ function Operators(masses::AbstractVector{<:Real}, charges::AbstractVector{<:Rea
     return Operators(Operator[], Float64.(masses), Float64.(charges), J, U)
 end
 
-function Operators(H::Hamiltonian)
+function _vmc_kinetic(H::Hamiltonian)
     FewBodyHamiltonians.validate(H)
     kinetic = FewBodyHamiltonians.kinetic(H)
     kinetic.units == FewBodyHamiltonians.unit_system(:atomic) ||
         throw(ArgumentError("FewBodyVMC supports shared Hamiltonians in atomic units only"))
     all(term -> term isa Union{Kinetic, Coulomb}, H) ||
         throw(ArgumentError("FewBodyVMC supports shared Kinetic and Coulomb terms only"))
-    ops = Operators(kinetic.masses)
+    return kinetic
+end
+
+# In particle coordinates R = U * X, so R[i, :] - R[j, :] uses this row difference.
+_pair_weight(U, i, j) = @views U[i, :] - U[j, :]
+
+function Operators(H::Hamiltonian)
+    ops = Operators(_vmc_kinetic(H).masses)
     for term in H
         if term isa Kinetic
             push!(ops.terms, KineticOperator(term.masses))
         else
-            selector = zeros(length(kinetic.masses))
-            selector[term.i] = 1
-            selector[term.j] = -1
-            push!(ops.terms, CoulombOperator(term.coefficient, transpose(ops.U) * selector))
+            w = _pair_weight(ops.U, term.i, term.j)
+            push!(ops.terms, CoulombOperator(term.coefficient, w))
         end
     end
     return ops
@@ -97,10 +102,7 @@ function Base.:+(ops::Operators, name::AbstractString)
             throw(ArgumentError("\"Coulomb\" requires Operators(masses, charges)"))
         n = length(ops.masses)
         for i = 1:n, j = (i+1):n
-            selector = zeros(Float64, n)
-            selector[i] = 1
-            selector[j] = -1
-            w = transpose(ops.U) * selector
+            w = _pair_weight(ops.U, i, j)
             push!(ops.terms, CoulombOperator(ops.charges[i] * ops.charges[j], w))
         end
     else
@@ -131,7 +133,7 @@ end
 jacobi_coordinates(H::Hamiltonian, positions::AbstractMatrix{<:Real}) =
     jacobi_coordinates(Operators(H), positions)
 
-"""Back-transform Jacobi coordinates to centre-of-mass-free particle positions."""
+"""Recover particle positions with zero arithmetic centroid using the Jacobi pseudoinverse."""
 function particle_coordinates(ops::Operators, coordinates::AbstractMatrix{<:Real})
     isnothing(ops.U) && throw(ArgumentError("Operators does not contain masses"))
     size(coordinates) == (length(ops.masses) - 1, 3) || throw(

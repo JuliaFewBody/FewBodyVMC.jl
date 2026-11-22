@@ -8,10 +8,10 @@ electron,
 \psi = e^{-\kappa(R-R_0)^2}\left(e^{-\alpha r_{1e}}+e^{-\alpha r_{2e}}\right).
 ```
 
-The first three Coulomb weights in `ops` must be ordered as nucleus–nucleus,
-first-nucleus–electron, and second-nucleus–electron. This is the order produced
-by `Coulomb(charges)` in a shared `Hamiltonian`, or the legacy
-`ops += "Coulomb"`, for particle ordering `[nucleus1, nucleus2, electron]`.
+For a shared `Hamiltonian`, particles 1 and 2 are the nuclei and particle 3 is
+the electron. Include all three Coulomb pairs in any order. For Jacobi-frame
+operators, supply the three weights in the order (1,2), (1,3), (2,3), as
+produced by `ops += "Coulomb"`.
 """
 struct DiatomicOneElectronWavefunction{T<:Real,V<:AbstractVector{T}}
     w_nn::V
@@ -22,13 +22,29 @@ struct DiatomicOneElectronWavefunction{T<:Real,V<:AbstractVector{T}}
     R₀::T
 end
 
-function DiatomicOneElectronWavefunction(ops; α::Real = 1.2, κ::Real = 6.0, R₀::Real = 2.1)
+function _diatomic_weights(ops)
     weights = coulomb_weights(ops)
     length(weights) == 3 || throw(
         ArgumentError(
             "a diatomic one-electron system requires exactly three Coulomb pairs",
         ),
     )
+    return weights
+end
+
+function _diatomic_weights(H::Hamiltonian)
+    masses = _vmc_kinetic(H).masses
+    length(masses) == 3 ||
+        throw(ArgumentError("the diatomic trial requires three particles"))
+    pairs = Set(minmax(term.i, term.j) for term in H if term isa Coulomb)
+    length(pairs) == 3 ||
+        throw(ArgumentError("the diatomic trial requires all three Coulomb pairs"))
+    _, U = jacobi_transform(masses)
+    return (_pair_weight(U, 1, 2), _pair_weight(U, 1, 3), _pair_weight(U, 2, 3))
+end
+
+function DiatomicOneElectronWavefunction(ops; α::Real = 1.2, κ::Real = 6.0, R₀::Real = 2.1)
+    weights = _diatomic_weights(ops)
     α > 0 || throw(ArgumentError("α must be positive"))
     κ > 0 || throw(ArgumentError("κ must be positive"))
     R₀ > 0 || throw(ArgumentError("R₀ must be positive"))

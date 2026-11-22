@@ -5,6 +5,3 @@
 LocalPreferences.toml
 .DS_Store
 /docs/build/
-
-# Proposed provider checkout used only by pull-request CI.
-/.ci/FewBodyHamiltonians/

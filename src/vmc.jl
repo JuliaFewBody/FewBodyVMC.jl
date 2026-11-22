@@ -71,6 +71,7 @@ function _potential_energy(operators, position)
         _is_kinetic(term) && continue
         _is_coulomb(term) ||
             throw(ArgumentError("unsupported VMC operator $(typeof(term))"))
+        iszero(term.coefficient) && continue
         distance = _pair_distance(position, term.w)
         energy += term.coefficient / distance
     end

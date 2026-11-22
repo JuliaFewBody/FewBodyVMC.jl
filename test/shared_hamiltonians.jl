@@ -27,6 +27,7 @@ import FewBodyHamiltonians
     coordinates = jacobi_coordinates(H, positions)
     @test coordinates == jacobi_coordinates(legacy, positions)
     @test particle_coordinates(H, coordinates) == particle_coordinates(legacy, coordinates)
+    @test particle_coordinates(H, coordinates) ≈ positions .- sum(positions; dims = 1) / 3
     @test jacobi_coordinates(H, particle_coordinates(H, coordinates)) ≈ coordinates atol = 1.0e-12
     @test_throws DimensionMismatch jacobi_coordinates(H, zeros(2, 3))
     @test_throws DimensionMismatch particle_coordinates(H, zeros(3, 3))
@@ -49,6 +50,38 @@ import FewBodyHamiltonians
     @test shared_solution.E₀ == legacy_solution.E₀
     @test shared_solution.standard_error == legacy_solution.standard_error
     @test shared_solution.acceptance_rate == legacy_solution.acceptance_rate
+
+    @testset "particle indices determine the diatomic trial geometry" begin
+        nn = Coulomb(2, 1)
+        ne1 = Coulomb(3, 1; coefficient = -1)
+        ne2 = Coulomb(2, 3; coefficient = -1)
+        reordered = ne2 + Kinetic(masses) + nn + ne1
+        w12, w13, w23 = coulomb_weights(H)
+        @test coulomb_weights(reordered) == [w23, -w12, -w13]
+        split_pair = 0.5 * ne2 + nn + ne1 + Kinetic(masses) + 0.5 * ne2
+        asymmetric = [-1.0 0.0 0.0; 1.0 0.0 0.0; 0.3 0.4 0.0]
+        x = vec(jacobi_coordinates(H, asymmetric))
+        r1 = norm(asymmetric[1, :] - asymmetric[3, :])
+        r2 = norm(asymmetric[2, :] - asymmetric[3, :])
+        expected = exp(-ψ.κ * (2.0 - ψ.R₀)^2) * (exp(-ψ.α * r1) + exp(-ψ.α * r2))
+        for h in (reordered, split_pair)
+            trial = DiatomicOneElectronWavefunction(h)
+            @test trial(x) ≈ expected
+            @test local_energy(h, trial, x) ≈ local_energy(H, ψ, x)
+        end
+        missing_pair = Kinetic(masses) + nn + ne1 + nn
+        four_particles = Kinetic(ones(4)) + nn + ne1 + ne2
+        @test_throws ArgumentError DiatomicOneElectronWavefunction(missing_pair)
+        @test_throws ArgumentError DiatomicOneElectronWavefunction(four_particles)
+    end
+
+    @testset "zero Coulomb coupling at particle coincidence" begin
+        kinetic = Kinetic([1.0, 1.0])
+        neutral = kinetic + Coulomb([1.0, 0.0])
+        gaussian(x) = exp(-sum(abs2, x) / 2)
+        free_energy = local_energy(Hamiltonian(kinetic), gaussian, zeros(3))
+        @test local_energy(neutral, gaussian, zeros(3)) == free_energy
+    end
 
     @testset "unsupported systems fail before evaluating the wavefunction" begin
         unevaluated = _ -> error("wavefunction must not be evaluated")
